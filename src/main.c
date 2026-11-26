@@ -19,21 +19,22 @@
 //----------------------------------------------------------------------------------
 int main()
 {
-    // Initialization
+    // Initialization for the game window size not the game screen size, the game screen size is defined later in the code
     const int screenWidth = 1280;
     const int screenHeight = 720;
 
     // Enable config flags for resizable window and vertical synchro
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
-    InitWindow(screenWidth, screenHeight, "raylib");
-    SetWindowMinSize(384, 216);
+    InitWindow(screenWidth, screenHeight, "Project Copper");
+    SetWindowMinSize(256, 144);
 
-    int gameScreenWidth = 2560;
-    int gameScreenHeight = 1440;
+    // determines the true resolution of the game, this is what the game will be rendered at, and then scaled up to the window size
+    int gameScreenWidth = 256;
+    int gameScreenHeight = 144;
 
     // Render texture initialization, used to hold the rendering result so we can easily resize it
     RenderTexture2D target = LoadRenderTexture(gameScreenWidth, gameScreenHeight);
-    SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);  // Texture scale filter to use
+    SetTextureFilter(target.texture, TEXTURE_FILTER_POINT);  // Texture scale filter to use
 
     // instantiations for data types ex. enums and structs
     GameState currentState = TEST_CENTER;
