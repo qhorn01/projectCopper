@@ -10,31 +10,33 @@ Everytime you see something like "Item struct:" that indicates that all
 functions below it are to only be used for that specified struct
 */
 
-void setTileMap(uint8_t *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset){
-    for (int y = 0; y < mapHeight; y++) { // every y value it calculates, it then executes all the x values
+void setTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset) {
+    // Prevent division-by-zero crash if texture failed to load or tile dimensions are invalid
+    if (tileset.id <= 0 || tileWidth <= 0.0f || tileHeight <= 0.0f) return;
+
+    // Calculate how many tiles fit across one row of your PNG
+    int columns = tileset.width / (int)tileWidth;
+    if (columns <= 0) return;
+
+    for (int y = 0; y < mapHeight; y++) {
         for (int x = 0; x < mapWidth; x++) {
             
-            // Get the tile number (0-13) for this specific grid coordinate
             int tileIndex = map[(y * mapWidth) + x];
 
-            // Define what part of the PNG to cut out
-            // x is 0, y moves down based on the tileIndex (e.g., tile 2 starts at y=16)
+            // Skip empty cells if you leave any blank spaces in Tiled (-1)
+            if (tileIndex < 0) continue;
+
+            // Calculate both X (column) and Y (row) on the grid sheet
             Rectangle sourceRec = { 
-                0.0f, // x
-                (float)(tileIndex * tileHeight),  // y
-                tileWidth, // w
-                tileHeight  // h
+                (float)((tileIndex % columns) * tileWidth),  // X moves right across columns
+                (float)((tileIndex / columns) * tileHeight), // Y moves down each time a row finishes
+                tileWidth,
+                tileHeight
             };
 
-            // Define where on the virtual canvas to draw it
             Vector2 position = { x * tileWidth, y * tileHeight };
 
-            // Draw the specific 8x8 slice to the virtual canvas
-            DrawTextureRec(tileset,   // tile textures
-                           sourceRec, // 
-                           position, // x, y
-                           WHITE // color
-                        );
+            DrawTextureRec(tileset, sourceRec, position, WHITE);
         }
     }
 }

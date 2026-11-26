@@ -7,6 +7,9 @@
 #include "raylib.h"
 #include "../globalFunctions.h"
 
+void initTestCenter(void);
+void unloadTestCenter(void);
+
 void testCenterLogic(GameState *currentState, Vector2 mouse);
 void testCenterRender();
 

@@ -15,7 +15,7 @@
 // Module Functions Declaration
 
 //----------------------------------------------------------------------------------
-// Program main entry pointglobalFunctions.c
+// Program main entry point
 //----------------------------------------------------------------------------------
 int main()
 {
@@ -66,6 +66,7 @@ int main()
                 case MENU:
                     break;
                 case TEST_CENTER:
+                    unloadTestCenter();
                     break;
                 default:
                     break;
@@ -74,6 +75,7 @@ int main()
                 case MENU:
                     break;
                 case TEST_CENTER:
+                    initTestCenter();
                     break;
                 default:
                     break;
@@ -91,19 +93,21 @@ int main()
             default:
                 break;
         }
+        
         // Draw everything in the render texture, note this will not be rendered on screen, yet
         BeginTextureMode(target);
-        // switches through gamestate rendering
-        switch(currentState){
-            case MENU:
-                break;
-            case TEST_CENTER:
-                testCenterRender();
-                break;
-            default:
-                break;
-        }
+            ClearBackground(BLACK); // Clear the render texture buffer before drawing
 
+            // switches through gamestate rendering
+            switch(currentState){
+                case MENU:
+                    break;
+                case TEST_CENTER:
+                    testCenterRender();
+                    break;
+                default:
+                    break;
+            }
         EndTextureMode();
 
         // Draw
@@ -119,6 +123,15 @@ int main()
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
+    switch(currentState){
+        case MENU:
+            break;
+        case TEST_CENTER:
+            unloadTestCenter();
+            break;
+        default:
+            break;
+    }
     UnloadRenderTexture(target);    // Unload render texture
     CloseWindow();                  // Close window and OpenGL context
     //--------------------------------------------------------------------------------------

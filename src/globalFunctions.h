@@ -23,6 +23,6 @@ typedef struct {
     bool isPressed;
 } Item; // item that can be dragged across the screen with the mouse and dropped at a specific location on the screen
 
-void setTileMap(uint8_t *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset);
+void setTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset);
 
 #endif
