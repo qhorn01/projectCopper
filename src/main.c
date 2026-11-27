@@ -60,7 +60,7 @@ int main()
         virtualMouse.y = (mouse.y - (GetScreenHeight() - (gameScreenHeight*scale))*0.5f)/scale;
         virtualMouse = Vector2Clamp(virtualMouse, (Vector2){ 0, 0 }, (Vector2){ (float)gameScreenWidth, (float)gameScreenHeight });
         
-        // switches through gamestate textures
+        // switches through gamestate textures during runtime
         if (currentState != previousState){
             switch(previousState){
                 case MENU:
@@ -93,7 +93,6 @@ int main()
             default:
                 break;
         }
-        
         // Draw everything in the render texture, note this will not be rendered on screen, yet
         BeginTextureMode(target);
             ClearBackground(BLACK); // Clear the render texture buffer before drawing
@@ -123,7 +122,7 @@ int main()
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    switch(currentState){
+    switch(currentState){ // unloads the current gamestate's textures before closing the program
         case MENU:
             break;
         case TEST_CENTER:

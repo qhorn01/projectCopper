@@ -5,16 +5,30 @@
 #include "raylib.h"
 #include "../globalFunctions.h"
 
-// textures
+// structs
+Character player = {
+    .position = { 16.0f, 16.0f },
+    .width = 16.0f,
+    .height = 16.0f,
+    .spriteIndex = { 32.0f, 16.0f }
+    // add your health/speed fields here as named in globalFunctions.h, e.g.:
+    // .health = 100,
+    // .speed = 5.5f
+};
+
+// tile textures
 static Texture2D testCenterTileset;
+// sprite textures
+static Texture2D testCenterSpriteSheet;
 
 void initTestCenter(void){
     testCenterTileset = LoadTexture("assets/tiles/testCenter/testTiles.png");
+    testCenterSpriteSheet = LoadTexture("assets/sprites/testCenter/testCenterSpriteSheet.png");
 }
 
 void unloadTestCenter(void){
     UnloadTexture(testCenterTileset);
-
+    UnloadTexture(testCenterSpriteSheet);
 }
 #define MAP_WIDTH  32
 #define MAP_HEIGHT 18
@@ -44,5 +58,8 @@ void testCenterLogic(GameState *currentState, Vector2 mouse){
     
 }
 void testCenterRender(){
-    setTileMap(testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterTileset);
+    renderTileMap(testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterTileset);
+    
+    renderCharacter(&player, testCenterSpriteSheet);
+
 }

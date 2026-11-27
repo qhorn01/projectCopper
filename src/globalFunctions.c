@@ -10,7 +10,7 @@ Everytime you see something like "Item struct:" that indicates that all
 functions below it are to only be used for that specified struct
 */
 
-void setTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset) {
+void renderTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset) {
     // Prevent division-by-zero crash if texture failed to load or tile dimensions are invalid
     if (tileset.id <= 0 || tileWidth <= 0.0f || tileHeight <= 0.0f) return;
 
@@ -39,4 +39,15 @@ void setTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float ti
             DrawTextureRec(tileset, sourceRec, position, WHITE);
         }
     }
+}
+
+void renderCharacter(Character *Character, Texture2D spriteSheet){ // renders Character to screen
+    DrawTextureRec(spriteSheet, 
+                    (Rectangle){ 
+                        Character->spriteIndex.x * Character->width, 
+                        Character->spriteIndex.y * Character->height,
+                        Character->width, 
+                        Character->height },
+                        (Vector2){ Character->position.x, Character->position.y }, 
+                        WHITE);
 }
