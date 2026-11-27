@@ -27,6 +27,7 @@ typedef struct {
 
 void renderTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset);
 void renderCharacter(Character *Character, Texture2D spriteSheet);
+void updateCamera(Camera2D *camera, Character *target, int screenWidth, int screenHeight, int mapWidth, int mapHeight, float tileWidth, float tileHeight);
 
 bool checkTileCollision(Rectangle hitbox, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount);
 void movePlayer(Character *player, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount);

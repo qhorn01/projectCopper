@@ -54,6 +54,40 @@ void renderCharacter(Character *Character, Texture2D spriteSheet){ // renders Ch
                         WHITE);
 }
 
+void updateCamera(Camera2D *camera, Character *target, int screenWidth, int screenHeight, int mapWidth, int mapHeight, float tileWidth, float tileHeight) {
+    // Center the camera on the middle of the character sprite
+    float targetX = target->position.x + (target->width * 0.5f);
+    float targetY = target->position.y + (target->height * 0.5f);
+
+    float halfScreenW = screenWidth * 0.5f;
+    float halfScreenH = screenHeight * 0.5f;
+
+    float mapPixelW = mapWidth * tileWidth;
+    float mapPixelH = mapHeight * tileHeight;
+
+    // Clamp camera X so it doesn't show black space past the left/right edges of the map
+    if (mapPixelW <= screenWidth) {
+        targetX = mapPixelW * 0.5f;
+    } else {
+        if (targetX < halfScreenW) targetX = halfScreenW;
+        if (targetX > mapPixelW - halfScreenW) targetX = mapPixelW - halfScreenW;
+    }
+
+    // Clamp camera Y so it doesn't show black space past the top/bottom edges of the map
+    if (mapPixelH <= screenHeight) {
+        targetY = mapPixelH * 0.5f;
+    } else {
+        if (targetY < halfScreenH) targetY = halfScreenH;
+        if (targetY > mapPixelH - halfScreenH) targetY = mapPixelH - halfScreenH;
+    }
+
+    // Round to whole pixels to prevent tile seams and sprite shimmer
+    camera->target = (Vector2){ roundf(targetX), roundf(targetY) };
+    camera->offset = (Vector2){ halfScreenW, halfScreenH };
+    camera->rotation = 0.0f;
+    camera->zoom = 1.0f;
+}
+
 bool checkTileCollision(Rectangle hitbox, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount) {
     if (map == NULL || solidTiles == NULL || solidTileCount <= 0) return false;
 

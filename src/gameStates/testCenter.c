@@ -18,6 +18,8 @@ Character player = {
     .animTimerMax = 0.15f
 };
 
+static Camera2D camera = { 0 };
+
 // tile textures
 static Texture2D testCenterTileset;
 // sprite textures
@@ -34,10 +36,28 @@ void unloadTestCenter(void){
 }
 
 #define MAP_WIDTH  32
-#define MAP_HEIGHT 18
+#define MAP_HEIGHT 36
 
 int testCenterTileMap[MAP_WIDTH * MAP_HEIGHT] = {
     12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 12, 12, 12, 12, 12, 12, 13, 12, 13, 12, 12, 13, 13, 12, 12, 12, 12, 12,
+    12,  2,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  2, 12,
+    12,  5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 12,
+    12,  5,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  4, 12,
+    12,  5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 13,
+    13,  5,  0,  0,  0, 11,  6,  6,  6,  6,  6,  6,  6,  6, 10,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 13,
+    12,  5,  0,  0,  0,  4, 15, 14, 14, 15, 15, 14, 14, 14,  5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 13,
+    12,  5,  0,  0,  0,  4, 14, 12, 12, 14, 14, 13, 12, 15,  5,  0, 11,  6,  6,  6,  6,  6,  6,  6,  6, 10,  0,  0,  0,  0,  4, 13,
+    13,  5,  0,  0,  0,  4, 14, 14, 15, 14, 15, 15, 14, 14,  5,  0,  4, 15, 14, 14, 15, 15, 14, 14, 14,  5,  0,  0,  0,  0,  4, 12,
+    13,  5,  0,  0,  0,  8,  7,  7,  7,  7,  7,  7,  7,  7,  9,  0,  4, 14, 13, 12, 14, 14, 13, 12, 15,  5,  0,  0,  0,  0,  4, 13,
+    13,  5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 14, 14, 15, 14, 15, 15, 14, 14,  5,  0,  0,  0,  0,  4, 12,
+    12,  5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  8,  7,  7,  7,  7,  7,  7,  7,  7,  9,  0,  0,  0,  0,  4, 13,
+    12,  5,  0,  0,  0,  3,  2,  3,  2,  3,  3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 12,
+    12,  5,  0,  0,  0,  3,  3,  3,  2,  2,  3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 12,
+    12,  5,  0,  0,  0,  3,  2,  3,  3,  3,  3,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  4, 12,
+    12,  5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 13,
+    12,  2,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  2, 12,
+    12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 12, 12, 14, 14, 15, 15, 13, 12, 13, 12, 12, 13, 13, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 15, 15, 14, 15, 12, 12, 13, 12, 13, 12, 12, 13, 13, 12, 12, 12, 12, 12,
     12,  2,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  2, 12,
     12,  5,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, 12,
     12,  5,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  4, 12,
@@ -64,9 +84,12 @@ const int testCenterSolidCount = sizeof(testCenterSolidTiles) / sizeof(testCente
 void testCenterLogic(GameState *currentState, Vector2 mouse){
             // *player, int *map,         int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount
     movePlayer(&player, testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterSolidTiles, testCenterSolidCount);
+    updateCamera(&camera, &player, 256, 144, MAP_WIDTH, MAP_HEIGHT, 8.0f, 8.0f);
 }
 
 void testCenterRender(){
-    renderTileMap(testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterTileset);
-    renderCharacter(&player, testCenterSpriteSheet);
+    BeginMode2D(camera);
+        renderTileMap(testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterTileset);
+        renderCharacter(&player, testCenterSpriteSheet);
+    EndMode2D();
 }
