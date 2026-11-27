@@ -10,10 +10,12 @@ Character player = {
     .position = { 16.0f, 16.0f },
     .width = 16.0f,
     .height = 16.0f,
-    .spriteIndex = { 32.0f, 16.0f }
-    // add your health/speed fields here as named in globalFunctions.h, e.g.:
-    // .health = 100,
-    // .speed = 5.5f
+    .spriteIndex = { 0.0f, 0.0f },
+    .health = 10,
+    .moveFrameCount = 3,
+    .moveFrameCurrent = 1,
+    .speed = 2.0f,
+    .animTimerMax = 0.15f
 };
 
 // tile textures
@@ -23,13 +25,14 @@ static Texture2D testCenterSpriteSheet;
 
 void initTestCenter(void){
     testCenterTileset = LoadTexture("assets/tiles/testCenter/testTiles.png");
-    testCenterSpriteSheet = LoadTexture("assets/sprites/testCenter/testCenterSpriteSheet.png");
+    testCenterSpriteSheet = LoadTexture("assets/tiles/testCenter/testCenterSpriteSheet.png");
 }
 
 void unloadTestCenter(void){
     UnloadTexture(testCenterTileset);
     UnloadTexture(testCenterSpriteSheet);
 }
+
 #define MAP_WIDTH  32
 #define MAP_HEIGHT 18
 
@@ -54,12 +57,16 @@ int testCenterTileMap[MAP_WIDTH * MAP_HEIGHT] = {
     12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 12, 12, 12, 12, 12, 12, 13, 12, 13, 12, 12, 13, 13, 12, 12, 12, 12, 12, 12, 12
 };
 
+// Solid tile IDs specific to this map (adjust these numbers to match your wall/obstacle tiles)
+const int testCenterSolidTiles[] = { 12, 13 };
+const int testCenterSolidCount = sizeof(testCenterSolidTiles) / sizeof(testCenterSolidTiles[0]);
+
 void testCenterLogic(GameState *currentState, Vector2 mouse){
-    
+            // *player, int *map,         int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount
+    movePlayer(&player, testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterSolidTiles, testCenterSolidCount);
 }
+
 void testCenterRender(){
     renderTileMap(testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterTileset);
-    
     renderCharacter(&player, testCenterSpriteSheet);
-
 }

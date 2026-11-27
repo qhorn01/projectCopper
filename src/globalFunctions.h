@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "raylib.h"
 
@@ -17,11 +18,17 @@ typedef struct {
     Vector2 spriteIndex; // x, y index on sprite sheet
     int width; // width of Character
     int height; // height of Character
-    float frame; // counts the number of frames counted
-    float frameReset; // determines how many frames have to pass before it resets
+    int health; // health of Character
+    int moveFrameCount; // number of frames for Character's movement animation
+    int moveFrameCurrent; // current frame of Character's movement animation
+    float speed; // speed of Character
+    float animTimerMax; // maximum time for animation frame
 } Character; // item that can be dragged across the screen with the mouse and dropped at a specific location on the screen
 
 void renderTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset);
 void renderCharacter(Character *Character, Texture2D spriteSheet);
+
+bool checkTileCollision(Rectangle hitbox, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount);
+void movePlayer(Character *player, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount);
 
 #endif
