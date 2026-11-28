@@ -23,6 +23,10 @@ typedef struct {
     int moveFrameCurrent; // current frame of Character's movement animation
     float speed; // speed of Character
     float animTimerMax; // maximum time for animation frame
+
+    // Custom collision hitbox relative to sprite top-left
+    Vector2 hitboxOffset; // x = 3.0f, y = 10.0f
+    Vector2 hitboxSize;   // x = 10.0f (width), y = 6.0f (height)
 } Character; // item that can be dragged across the screen with the mouse and dropped at a specific location on the screen
 
 void renderTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, Texture2D tileset);

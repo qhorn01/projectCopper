@@ -7,15 +7,18 @@
 
 // structs
 Character player = {
-    .position = { 16.0f, 16.0f },
+    .position = { 16.0f, 182.0f },
     .width = 16.0f,
     .height = 16.0f,
     .spriteIndex = { 0.0f, 0.0f },
     .health = 10,
     .moveFrameCount = 4,
     .moveFrameCurrent = 1,
-    .speed = 2.0f,
-    .animTimerMax = 0.15f
+    .speed = 50.0f,
+    .animTimerMax = 0.15f,
+
+    .hitboxOffset = { 3.0f, 10.0f },
+    .hitboxSize = { 10.0f, 6.0f }
 };
 
 Character npc1 = {
@@ -27,7 +30,10 @@ Character npc1 = {
     .moveFrameCount = 4,
     .moveFrameCurrent = 1,
     .speed = 2.0f,
-    .animTimerMax = 0.15f
+    .animTimerMax = 0.15f,
+
+    .hitboxOffset = { 3.0f, 10.0f },
+    .hitboxSize = { 10.0f, 6.0f }
 };
 
 // List of all active characters in this level for character-to-character collision
@@ -41,17 +47,23 @@ static Texture2D testCenterTileset;
 // sprite textures
 static Texture2D testCenterSpriteSheet;
 static Texture2D testCenterSpriteSheet2;
+// Fonts
+static Font mainFont;
 
 void initTestCenter(void){
     testCenterTileset = LoadTexture("assets/tiles/testCenter/testTiles.png");
     testCenterSpriteSheet = LoadTexture("assets/tiles/testCenter/testCenterSpriteSheet.png");
     testCenterSpriteSheet2 = LoadTexture("assets/tiles/testCenter/testCenterSpriteSheet2.png");
+
+    mainFont = LoadFont("../assets/PressStart2P-Regular.ttf");
 }
 
 void unloadTestCenter(void){
     UnloadTexture(testCenterTileset);
     UnloadTexture(testCenterSpriteSheet);
     UnloadTexture(testCenterSpriteSheet2);
+
+    UnloadFont(mainFont);
 }
 
 #define MAP_WIDTH  32
@@ -102,10 +114,6 @@ const int testCenterSolidCount = sizeof(testCenterSolidTiles) / sizeof(testCente
 
 void testCenterLogic(GameState *currentState, Vector2 mouse){
     movePlayer(&player, testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterSolidTiles, testCenterSolidCount, testCenterCharacters, testCenterCharacterCount);
-
-    // Later, to make npc1 move with full wall + player collision, just call:
-    // moveCharacter(&npc1, npcDirX, npcDirY, testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterSolidTiles, testCenterSolidCount, testCenterCharacters, testCenterCharacterCount);
-
     updateCamera(&camera, &player, 256, 144, MAP_WIDTH, MAP_HEIGHT, 8.0f, 8.0f);
 }
 
@@ -122,4 +130,13 @@ void testCenterRender(){
             renderCharacter(&npc1, testCenterSpriteSheet2);
         }
     EndMode2D();
+
+    // Display player position for debugging
+    DrawTextEx(mainFont, TextFormat("%d %d", (int)player.position.x, (int)player.position.y), (Vector2){ 0, 0 }, 16.0f, 1.0f, GetColor(0xe000c0ff));
+    if (CheckCollisionRecs((Rectangle){ player.position.x, player.position.y, 16, 16 }, 
+        (Rectangle){ npc1.position.x, npc1.position.y, npc1.width-4, npc1.height-4 })) {
+        
+        DrawTextEx(mainFont, TextFormat("NPC detected"), (Vector2){ 0, 18 }, 12.0f, 1.0f, GetColor(0xe000c0ff));
+    
+    }
 }

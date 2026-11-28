@@ -88,16 +88,6 @@ void updateCamera(Camera2D *camera, Character *target, int screenWidth, int scre
     camera->zoom = 1.0f;
 }
 
-Rectangle getCharacterHitbox(Character *character) {
-    // Feet hitbox (10x6 at the bottom center of the 16x16 sprite)
-    return (Rectangle){
-        character->position.x + 3.0f,
-        character->position.y + 10.0f,
-        10.0f,
-        6.0f
-    };
-}
-
 bool checkTileCollision(Rectangle hitbox, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount) {
     if (map == NULL || solidTiles == NULL || solidTileCount <= 0) return false;
 
@@ -128,6 +118,16 @@ bool checkTileCollision(Rectangle hitbox, int *map, int mapHeight, int mapWidth,
     return false;
 }
 
+Rectangle getCharacterHitbox(Character *character) {
+    // Feet hitbox (10x6 at the bottom center of the 16x16 sprite)
+    return (Rectangle){
+        character->position.x + character->hitboxOffset.x,
+        character->position.y + character->hitboxOffset.y,
+        character->hitboxSize.x,
+        character->hitboxSize.y
+    };
+}
+
 bool checkCharacterCollision(Rectangle hitbox, Character *self, Character *characters[], int characterCount) {
     if (characters == NULL || characterCount <= 0) return false;
 
@@ -147,17 +147,16 @@ bool checkCharacterCollision(Rectangle hitbox, Character *self, Character *chara
 
 void moveCharacter(Character *character, int dirX, int dirY, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount, Character *characters[], int characterCount) {
     float dt = GetFrameTime();
-    float moveSpeed = character->speed * 30.0f; // Scales speed = 2.0f to 60 px/sec
 
     if (dirX != 0 || dirY != 0) {
         // Normalize diagonal movement so diagonal speed matches cardinal speed
         float len = sqrtf((float)(dirX * dirX + dirY * dirY));
-        float velX = (dirX / len) * moveSpeed * dt;
-        float velY = (dirY / len) * moveSpeed * dt;
+        float velX = (dirX / len) * character->speed * dt;
+        float velY = (dirY / len) * character->speed * dt;
 
         // 1. Move and check X axis against both solid tiles and other characters
         float nextX = character->position.x + velX;
-        Rectangle hitboxX = { nextX + 3.0f, character->position.y + 10.0f, 10.0f, 6.0f };
+        Rectangle hitboxX = { nextX + character->hitboxOffset.x, character->position.y + character->hitboxOffset.y, character->hitboxSize.x, character->hitboxSize.y };
         if (!checkTileCollision(hitboxX, map, mapHeight, mapWidth, tileWidth, tileHeight, solidTiles, solidTileCount) &&
             !checkCharacterCollision(hitboxX, character, characters, characterCount)) {
             character->position.x = nextX;
@@ -165,7 +164,7 @@ void moveCharacter(Character *character, int dirX, int dirY, int *map, int mapHe
 
         // 2. Move and check Y axis against both solid tiles and other characters
         float nextY = character->position.y + velY;
-        Rectangle hitboxY = { character->position.x + 3.0f, nextY + 10.0f, 10.0f, 6.0f };
+        Rectangle hitboxY = { character->position.x + character->hitboxOffset.x, nextY + character->hitboxOffset.y, character->hitboxSize.x, character->hitboxSize.y };
         if (!checkTileCollision(hitboxY, map, mapHeight, mapWidth, tileWidth, tileHeight, solidTiles, solidTileCount) &&
             !checkCharacterCollision(hitboxY, character, characters, characterCount)) {
             character->position.y = nextY;
