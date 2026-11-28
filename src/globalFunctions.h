@@ -30,6 +30,9 @@ void renderCharacter(Character *Character, Texture2D spriteSheet);
 void updateCamera(Camera2D *camera, Character *target, int screenWidth, int screenHeight, int mapWidth, int mapHeight, float tileWidth, float tileHeight);
 
 bool checkTileCollision(Rectangle hitbox, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount);
-void movePlayer(Character *player, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount);
+Rectangle getCharacterHitbox(Character *character);
+bool checkCharacterCollision(Rectangle hitbox, Character *self, Character *characters[], int characterCount);
+void moveCharacter(Character *character, int dirX, int dirY, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount, Character *characters[], int characterCount);
+void movePlayer(Character *player, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount, Character *characters[], int characterCount);
 
 #endif

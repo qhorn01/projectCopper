@@ -12,11 +12,27 @@ Character player = {
     .height = 16.0f,
     .spriteIndex = { 0.0f, 0.0f },
     .health = 10,
-    .moveFrameCount = 3,
+    .moveFrameCount = 4,
     .moveFrameCurrent = 1,
     .speed = 2.0f,
     .animTimerMax = 0.15f
 };
+
+Character npc1 = {
+    .position = { 16.0f, 160.0f },
+    .width = 16.0f,
+    .height = 16.0f,
+    .spriteIndex = { 0.0f, 0.0f },
+    .health = 10,
+    .moveFrameCount = 4,
+    .moveFrameCurrent = 1,
+    .speed = 2.0f,
+    .animTimerMax = 0.15f
+};
+
+// List of all active characters in this level for character-to-character collision
+Character *testCenterCharacters[] = { &player, &npc1 };
+const int testCenterCharacterCount = sizeof(testCenterCharacters) / sizeof(testCenterCharacters[0]);
 
 static Camera2D camera = { 0 };
 
@@ -24,15 +40,18 @@ static Camera2D camera = { 0 };
 static Texture2D testCenterTileset;
 // sprite textures
 static Texture2D testCenterSpriteSheet;
+static Texture2D testCenterSpriteSheet2;
 
 void initTestCenter(void){
     testCenterTileset = LoadTexture("assets/tiles/testCenter/testTiles.png");
     testCenterSpriteSheet = LoadTexture("assets/tiles/testCenter/testCenterSpriteSheet.png");
+    testCenterSpriteSheet2 = LoadTexture("assets/tiles/testCenter/testCenterSpriteSheet2.png");
 }
 
 void unloadTestCenter(void){
     UnloadTexture(testCenterTileset);
     UnloadTexture(testCenterSpriteSheet);
+    UnloadTexture(testCenterSpriteSheet2);
 }
 
 #define MAP_WIDTH  32
@@ -77,19 +96,30 @@ int testCenterTileMap[MAP_WIDTH * MAP_HEIGHT] = {
     12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 12, 12, 12, 12, 12, 12, 13, 12, 13, 12, 12, 13, 13, 12, 12, 12, 12, 12, 12, 12
 };
 
-// Solid tile IDs specific to this map (adjust these numbers to match your wall/obstacle tiles)
+// Solid tile IDs specific to this map
 const int testCenterSolidTiles[] = { 12, 13 };
 const int testCenterSolidCount = sizeof(testCenterSolidTiles) / sizeof(testCenterSolidTiles[0]);
 
 void testCenterLogic(GameState *currentState, Vector2 mouse){
-            // *player, int *map,         int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount
-    movePlayer(&player, testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterSolidTiles, testCenterSolidCount);
+    movePlayer(&player, testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterSolidTiles, testCenterSolidCount, testCenterCharacters, testCenterCharacterCount);
+
+    // Later, to make npc1 move with full wall + player collision, just call:
+    // moveCharacter(&npc1, npcDirX, npcDirY, testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterSolidTiles, testCenterSolidCount, testCenterCharacters, testCenterCharacterCount);
+
     updateCamera(&camera, &player, 256, 144, MAP_WIDTH, MAP_HEIGHT, 8.0f, 8.0f);
 }
 
 void testCenterRender(){
     BeginMode2D(camera);
         renderTileMap(testCenterTileMap, MAP_HEIGHT, MAP_WIDTH, 8.0f, 8.0f, testCenterTileset);
-        renderCharacter(&player, testCenterSpriteSheet);
+
+        // Y-sort so whichever character is lower on screen renders in front
+        if (npc1.position.y < player.position.y) {
+            renderCharacter(&npc1, testCenterSpriteSheet2);
+            renderCharacter(&player, testCenterSpriteSheet);
+        } else {
+            renderCharacter(&player, testCenterSpriteSheet);
+            renderCharacter(&npc1, testCenterSpriteSheet2);
+        }
     EndMode2D();
 }

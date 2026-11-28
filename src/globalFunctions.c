@@ -42,15 +42,15 @@ void renderTileMap(int *map, int mapHeight, int mapWidth, float tileWidth, float
     }
 }
 
-void renderCharacter(Character *Character, Texture2D spriteSheet){ // renders Character to screen
+void renderCharacter(Character *character, Texture2D spriteSheet){ // renders Character to screen
     if (spriteSheet.id <= 0) return; // Prevent division-by-zero crash if texture failed to load
     DrawTextureRec(spriteSheet, 
                     (Rectangle){ 
-                        Character->spriteIndex.x * Character->width, 
-                        Character->spriteIndex.y * Character->height,
-                        Character->width, 
-                        Character->height },
-                        (Vector2){ roundf(Character->position.x), roundf(Character->position.y) }, 
+                        character->spriteIndex.x * character->width, 
+                        character->spriteIndex.y * character->height,
+                        character->width, 
+                        character->height },
+                        (Vector2){ roundf(character->position.x), roundf(character->position.y) }, 
                         WHITE);
 }
 
@@ -88,6 +88,16 @@ void updateCamera(Camera2D *camera, Character *target, int screenWidth, int scre
     camera->zoom = 1.0f;
 }
 
+Rectangle getCharacterHitbox(Character *character) {
+    // Feet hitbox (10x6 at the bottom center of the 16x16 sprite)
+    return (Rectangle){
+        character->position.x + 3.0f,
+        character->position.y + 10.0f,
+        10.0f,
+        6.0f
+    };
+}
+
 bool checkTileCollision(Rectangle hitbox, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount) {
     if (map == NULL || solidTiles == NULL || solidTileCount <= 0) return false;
 
@@ -118,12 +128,71 @@ bool checkTileCollision(Rectangle hitbox, int *map, int mapHeight, int mapWidth,
     return false;
 }
 
-void movePlayer(Character *player, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount) {
-    static float animTimer = 0.0f;
+bool checkCharacterCollision(Rectangle hitbox, Character *self, Character *characters[], int characterCount) {
+    if (characters == NULL || characterCount <= 0) return false;
 
+    for (int i = 0; i < characterCount; i++) {
+        Character *other = characters[i];
+        // Skip null entries and skip checking collision against itself
+        if (other == NULL || other == self) continue;
+
+        Rectangle otherHitbox = getCharacterHitbox(other);
+        if (CheckCollisionRecs(hitbox, otherHitbox)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void moveCharacter(Character *character, int dirX, int dirY, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount, Character *characters[], int characterCount) {
     float dt = GetFrameTime();
-    float moveSpeed = player->speed * 30.0f; // Scales speed = 2.0f to 60 px/sec
+    float moveSpeed = character->speed * 30.0f; // Scales speed = 2.0f to 60 px/sec
 
+    if (dirX != 0 || dirY != 0) {
+        // Normalize diagonal movement so diagonal speed matches cardinal speed
+        float len = sqrtf((float)(dirX * dirX + dirY * dirY));
+        float velX = (dirX / len) * moveSpeed * dt;
+        float velY = (dirY / len) * moveSpeed * dt;
+
+        // 1. Move and check X axis against both solid tiles and other characters
+        float nextX = character->position.x + velX;
+        Rectangle hitboxX = { nextX + 3.0f, character->position.y + 10.0f, 10.0f, 6.0f };
+        if (!checkTileCollision(hitboxX, map, mapHeight, mapWidth, tileWidth, tileHeight, solidTiles, solidTileCount) &&
+            !checkCharacterCollision(hitboxX, character, characters, characterCount)) {
+            character->position.x = nextX;
+        }
+
+        // 2. Move and check Y axis against both solid tiles and other characters
+        float nextY = character->position.y + velY;
+        Rectangle hitboxY = { character->position.x + 3.0f, nextY + 10.0f, 10.0f, 6.0f };
+        if (!checkTileCollision(hitboxY, map, mapHeight, mapWidth, tileWidth, tileHeight, solidTiles, solidTileCount) &&
+            !checkCharacterCollision(hitboxY, character, characters, characterCount)) {
+            character->position.y = nextY;
+        }
+
+        // Check vertical first so diagonal movement displays Up (1) or Down (0)
+        if (dirY > 0)      character->spriteIndex.x = 0.0f; // Down
+        else if (dirY < 0) character->spriteIndex.x = 1.0f; // Up
+        else if (dirX < 0) character->spriteIndex.x = 2.0f; // Left
+        else if (dirX > 0) character->spriteIndex.x = 3.0f; // Right
+
+        // Note: if you want per-character animation timers later, add `float animTimer` to Character
+        static float animTimer = 0.0f;
+        animTimer += dt;
+        if (animTimer >= character->animTimerMax) {
+            animTimer = 0.0f;
+            character->moveFrameCurrent += 1;
+            if (character->moveFrameCurrent >= character->moveFrameCount) character->moveFrameCurrent = 1;
+        }
+        character->spriteIndex.y = (float)character->moveFrameCurrent;
+    } else {
+        // Idle standing frame (row 0) while keeping last faced direction
+        character->spriteIndex.y = 0.0f;
+    }
+}
+
+void movePlayer(Character *player, int *map, int mapHeight, int mapWidth, float tileWidth, float tileHeight, const int *solidTiles, int solidTileCount, Character *characters[], int characterCount) {
     int dirX = 0;
     int dirY = 0;
 
@@ -132,49 +201,5 @@ void movePlayer(Character *player, int *map, int mapHeight, int mapWidth, float 
     if (IsKeyDown(KEY_W)) dirY -= 1;
     if (IsKeyDown(KEY_S)) dirY += 1;
 
-    if (dirX != 0 || dirY != 0) {
-        // Normalize diagonal movement so diagonal speed matches cardinal speed
-        float len = sqrtf((float)(dirX * dirX + dirY * dirY));
-        float velX = (dirX / len) * moveSpeed * dt;
-        float velY = (dirY / len) * moveSpeed * dt;
-
-        // Feet hitbox (10x6 at the bottom center of the 16x16 sprite)
-        float hitboxOffsetX = 3.0f;
-        float hitboxOffsetY = 10.0f;
-        float hitboxWidth   = 10.0f;
-        float hitboxHeight  = 6.0f;
-
-        // 1. Move and check X axis independently (allows smooth sliding along walls)
-        float nextX = player->position.x + velX;
-        Rectangle hitboxX = { nextX + hitboxOffsetX, player->position.y + hitboxOffsetY, hitboxWidth, hitboxHeight };
-        if (!checkTileCollision(hitboxX, map, mapHeight, mapWidth, tileWidth, tileHeight, solidTiles, solidTileCount)) {
-            player->position.x = nextX;
-        }
-
-        // 2. Move and check Y axis independently
-        float nextY = player->position.y + velY;
-        Rectangle hitboxY = { player->position.x + hitboxOffsetX, nextY + hitboxOffsetY, hitboxWidth, hitboxHeight };
-        if (!checkTileCollision(hitboxY, map, mapHeight, mapWidth, tileWidth, tileHeight, solidTiles, solidTileCount)) {
-            player->position.y = nextY;
-        }
-
-        // Check vertical first so diagonal movement displays Up (1) or Down (0)
-        if (dirY > 0)      player->spriteIndex.x = 0.0f; // Down
-        else if (dirY < 0) player->spriteIndex.x = 1.0f; // Up
-        else if (dirX < 0) player->spriteIndex.x = 2.0f; // Left
-        else if (dirX > 0) player->spriteIndex.x = 3.0f; // Right
-
-        // Cycle between walking frames
-        animTimer += dt;
-        if (animTimer >= player->animTimerMax) {
-            animTimer = 0.0f;
-            player->moveFrameCurrent += 1;
-            if (player->moveFrameCurrent >= player->moveFrameCount) player->moveFrameCurrent = 1;
-        }
-        player->spriteIndex.y = (float)player->moveFrameCurrent;
-    } else {
-        // Idle standing frame (row 0) while keeping last faced direction
-        animTimer = 0.0f;
-        player->spriteIndex.y = 0.0f;
-    }
+    moveCharacter(player, dirX, dirY, map, mapHeight, mapWidth, tileWidth, tileHeight, solidTiles, solidTileCount, characters, characterCount);
 }
